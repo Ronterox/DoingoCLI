@@ -48,7 +48,7 @@ func showRecent() {
 func main() {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
-		case "now":
+		case "now", "later":
 			date := time.Now().Format("15:04am")
 			text := strings.Join(os.Args[2:], " ")
 			fmt.Println("\t", cit("New entry:", CYAN), "added", date+": \"", text, "\" to Currently")
@@ -59,7 +59,9 @@ func main() {
 			}
 			defer file.Close()
 			fmt.Fprintf(file, "%s ║ %s [Currently]\n", date, text)
-		case "recent":
+		case "done", "did":
+			panic("TODO: Implement done")
+		case "recent", "last":
 			showRecent()
 		default:
 			fmt.Println("Error: Command not found")
