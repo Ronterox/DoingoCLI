@@ -134,7 +134,9 @@ func done() {
 		line := lines[i]
 		if !strings.Contains(line, "@done") {
 			lines[i] = fmt.Sprintf("%s @done(%s)", line, time.Now().Format(DATE_FORMAT))
-			fmt.Println(lines[i])
+			text := strings.ReplaceAll(strings.Split(lines[i], DELIMITER)[1], "@done", cit("@done", RED))
+
+			fmt.Println("\t", cit("Tagged:", CYAN), "added tag", cit("@done", RED), "to", strings.TrimSpace(text))
 			_, err = fmt.Fprintf(file, "%s\n", strings.Join(lines, "\n"))
 			if err != nil {
 				fmt.Println(err)
