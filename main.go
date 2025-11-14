@@ -205,9 +205,20 @@ func main() {
 				fmt.Println(err)
 			}
 		case "done", "did":
+			// TODO: done with search text
 			done()
+		case "edit":
+			panic("TODO: Implement edit")
 		case "recent":
 			recent()
+		case "today", "yesterday":
+			panic("TODO: Implement today and yesterday")
+		case "archive", "move":
+			panic("TODO: Implement archive and move")
+		case "begin", "reset":
+			panic("TODO: Implement begin and resume")
+		case "undo":
+			panic("TODO: Implement undo")
 		case "last":
 			last()
 		default:
