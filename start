@@ -3,9 +3,10 @@
 set -e
 
 # @cmd Run the binary without building
+# @arg args*  Arguments to pass to the binary
 # @meta default-subcommand
 run() {
-    go run .
+    go run . "${argc_args[@]}"
 }
 
 # @cmd Prepares a development environment
