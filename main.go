@@ -44,7 +44,7 @@ func formatDate(date time.Time) string {
 	return date.Format("02/01/06 3:04pm")
 }
 
-func showRecent() {
+func recent() {
 	file, err := os.Open(FILENAME)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -60,13 +60,13 @@ func showRecent() {
 		line := scanner.Text()
 		split := strings.Split(line, DELIMITER)
 
-		date, err := time.Parse(DATE_FORMAT, strings.Trim(split[0], " "))
+		date, err := time.Parse(DATE_FORMAT, strings.TrimSpace(split[0]))
 		if err != nil {
 			fmt.Println("Error: Could not parse date", err)
 			continue
 		}
 
-		text := strings.Replace(split[1], "[Currently]", "", 1)
+		text := split[1]
 		cuteDate := formatDate(date)
 
 		dateParts := strings.Split(cuteDate, " ")
@@ -76,12 +76,89 @@ func showRecent() {
 			first = dateParts[0]
 			rest = dateParts[1]
 		}
+
 		rest = strings.Repeat(" ", len("03:04pm")-len(rest)) + rest
-
 		cuteDate = strings.Repeat(" ", LONGEST-len(first)) + first + " " + rest
-
 		tabs := strings.Repeat(" ", max(88-len(cuteDate)-len(text), 0))
+
 		fmt.Println("  "+cit(cuteDate, CYAN), DELIMITER, text, tabs, cit("[", PURPLE)+"Currently"+cit("]", PURPLE))
+	}
+}
+
+func done() {
+	var lines []string
+
+	file, err := os.OpenFile(FILENAME, os.O_RDWR, 0644)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return
+		}
+		fmt.Println(err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	_, err = file.Seek(0, 0)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	for i := len(lines) - 1; i >= 0; i-- {
+		line := lines[i]
+		if !strings.Contains(line, "@done") {
+			lines[i] = fmt.Sprintf("%s @done(%s)", line, time.Now().Format(DATE_FORMAT))
+			fmt.Println(lines[i])
+			_, err = fmt.Fprintf(file, "%s\n", strings.Join(lines, "\n"))
+			if err != nil {
+				fmt.Println(err)
+			}
+			break
+		}
+	}
+}
+
+func last() {
+	var line string
+
+	file, err := os.Open(FILENAME)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return
+		}
+		fmt.Println(err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		tmp := scanner.Text()
+		if !strings.Contains(tmp, "@done") {
+			line = tmp
+		}
+	}
+	split := strings.Split(line, DELIMITER)
+	if len(split) > 1 {
+		doing := strings.TrimSpace(split[1])
+		date, err := time.Parse(DATE_FORMAT, strings.TrimSpace(split[0]))
+		if err != nil {
+			fmt.Println("Error: Could not parse date", err)
+			return
+		}
+
+		timestamp := strings.Split(formatDate(date), " ")
+		day := ""
+		time := timestamp[0]
+		if len(timestamp) > 1 {
+			day = " on " + timestamp[0]
+			time = timestamp[1]
+		}
+
+		fmt.Printf("%s (at %s%s)\n", doing, time, day)
 	}
 }
 
@@ -98,15 +175,21 @@ func main() {
 				fmt.Println(err)
 			}
 			defer file.Close()
-			fmt.Fprintf(file, "%s %s %s [Currently]\n", date.Format(DATE_FORMAT), DELIMITER, text)
+
+			_, err = fmt.Fprintf(file, "%s %s %s\n", date.Format(DATE_FORMAT), DELIMITER, text)
+			if err != nil {
+				fmt.Println(err)
+			}
 		case "done", "did":
-			panic("TODO: Implement done")
-		case "recent", "last":
-			showRecent()
+			done()
+		case "recent":
+			recent()
+		case "last":
+			last()
 		default:
 			fmt.Println("Error: Command not found")
 		}
 	} else {
-		showRecent()
+		recent()
 	}
 }
