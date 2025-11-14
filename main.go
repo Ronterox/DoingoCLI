@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 const FILENAME = "./what_was_I_doing.txt"
@@ -13,14 +15,14 @@ const DELIMITER = "║"
 const DATE_FORMAT = "02/01/06 15:04:05"
 
 const (
-	BLACK  = "30"
-	RED    = "31"
-	GREEN  = "32"
-	YELLOW = "33"
-	BLUE   = "34"
-	PURPLE = "35"
-	CYAN   = "36"
-	WHITE  = "37"
+	BLACK   = "30"
+	RED     = "31"
+	GREEN   = "32"
+	YELLOW  = "33"
+	BLUE    = "34"
+	MAGENTA = "35"
+	CYAN    = "36"
+	WHITE   = "37"
 )
 
 func cit(text string, color string) string {
@@ -67,9 +69,25 @@ func recent() {
 		}
 
 		text := split[1]
-		cuteDate := formatDate(date)
+		textLength := utf8.RuneCountInString(text)
+		doneTime := ""
+		if strings.Contains(text, "@done") {
+			regexp := regexp.MustCompile(`@done\((.*)\)`)
+			match := regexp.FindStringSubmatch(text)
+			if len(match) > 1 {
+				doneDate, err := time.Parse(DATE_FORMAT, match[1])
+				if err != nil {
+					fmt.Println("Error: Could not parse date", err)
+					continue
+				}
+				doneTime = doneDate.Sub(date).String()
+			}
+			text = regexp.ReplaceAllString(text, cit("@done(", RED)+cit("$1", MAGENTA)+cit(")", RED))
+		}
 
+		cuteDate := formatDate(date)
 		dateParts := strings.Split(cuteDate, " ")
+
 		first := " "
 		rest := dateParts[0]
 		if len(dateParts) > 1 {
@@ -79,9 +97,13 @@ func recent() {
 
 		rest = strings.Repeat(" ", len("03:04pm")-len(rest)) + rest
 		cuteDate = strings.Repeat(" ", LONGEST-len(first)) + first + " " + rest
-		tabs := strings.Repeat(" ", max(88-len(cuteDate)-len(text), 0))
+		tabs := strings.Repeat(" ", 88-textLength)
 
-		fmt.Println("  "+cit(cuteDate, CYAN), DELIMITER, text, tabs, cit("[", PURPLE)+"Currently"+cit("]", PURPLE))
+		fmt.Println(
+			"  "+cit(cuteDate, CYAN), DELIMITER, text,
+			tabs, cit("[", MAGENTA)+"Currently"+cit("]", MAGENTA),
+			cit(doneTime, YELLOW),
+		)
 	}
 }
 
