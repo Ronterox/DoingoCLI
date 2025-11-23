@@ -10,10 +10,11 @@ import (
 	"unicode/utf8"
 )
 
-const FILENAME = "./what_was_I_doing.txt"
+const FILENAME = "what_was_I_doing.txt"
 const DELIMITER = "║"
 const DATE_FORMAT = "02/01/06 15:04:05"
 const LONGEST = len("Yesterday")
+const PADDING = 88
 
 const (
 	BLACK   = "30"
@@ -45,6 +46,10 @@ func formatDate(date time.Time) string {
 	}
 
 	return date.Format("02/01/06 3:04pm")
+}
+
+func padding(length int) string {
+	return strings.Repeat(" ", max(PADDING-length, 0))
 }
 
 func printTask(line string) {
@@ -84,14 +89,25 @@ func printTask(line string) {
 	}
 
 	rest = strings.Repeat(" ", len("03:04pm")-len(rest)) + rest
-	cuteDate = strings.Repeat(" ", LONGEST-len(first)) + first + " " + rest
-	tabs := strings.Repeat(" ", 88-textLength)
+	cuteDate = strings.Repeat(" ", LONGEST-len(first)) + "  " + first + " " + rest
 
+	end := min(PADDING, textLength)
+	line = text[0:end]
 	fmt.Println(
-		"  "+cit(cuteDate, CYAN), DELIMITER, text,
-		tabs, cit("[", MAGENTA)+"Currently"+cit("]", MAGENTA),
+		cit(cuteDate, CYAN), DELIMITER, "> "+line,
+		padding(textLength), cit("[", MAGENTA)+"Currently"+cit("]", MAGENTA),
 		cit(doneTime, YELLOW),
 	)
+
+	for end < textLength {
+		start := end
+		end = min(end+PADDING, textLength)
+
+		line = text[start:end]
+		padding := strings.Repeat(" ", utf8.RuneCountInString(cuteDate))
+
+		fmt.Println(padding, DELIMITER, ">", line)
+	}
 }
 
 func recent() {
@@ -248,6 +264,7 @@ func show(day string) bool {
 	return true
 }
 
+// FIX: Urgent archive destroys old ones
 func archive() {
 	var lines []string
 

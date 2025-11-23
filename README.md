@@ -1,126 +1,41 @@
-# DoingCLI - A Fast Go CLI for Task & Time Tracking
+# DoingoCLI
 
-DoingCLI is a command-line utility written in Go designed for efficient task and time tracking. It serves as a faster, more robust replacement for existing tools, focusing on seamless task management and performance.
+*Anotations, fast lookup of what I'm doing, saving on history and in order with
+a correct format for visualization on how much it all takes, and may take*
 
-## Features
-
--   **Quick Task Annotation:** Mark tasks as "now" or "later".
--   **Effortless Completion:** Easily mark tasks as "done".
--   **Activity Overview:** View recent tasks and your last active task.
--   **Local Storage:** All tasks are stored locally in `what_was_I_doing.txt`.
-
-## Getting Started
-
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
-
-### Prerequisites
-
--   Go (version 1.18 or higher recommended)
-
-### Installation & Building
-
-Clone the repository:
-```bash
-git clone https://github.com/your-username/DoingCLI.git # Replace with actual repo URL
-cd DoingCLI
-```
-
-Build the application using the provided `start` script:
-```bash
-./start build
-```
-This will create an executable named `doingcli` in the project root.
-
-### Running
-
-To run the application:
-```bash
-./start run
-```
-Or, after building, you can run the executable directly:
-```bash
-./doingcli [command]
-```
-
-For development with live-reloading:
-```bash
-./start dev
-```
-
-## Usage
-
-DoingCLI operates with simple, intuitive commands.
-
-### `now <task description>`
-Records a new task that you are currently working on.
-Example:
-```bash
-./doingcli now Working on the new feature
-```
-
-### `later <task description>`
-Records a task that you plan to do later.
-Example:
-```bash
-./doingcli later Research Go concurrency patterns
-```
-
-### `done`
-Marks your last recorded task as complete.
-Example:
-```bash
-./doingcli done
-```
-
-### `recent`
-Displays a list of your recently completed or active tasks.
-Example:
-```bash
-./doingcli recent
-```
-
-### `last`
-Shows the very last task you recorded.
-Example:
-```bash
-./doingcli last
-```
-
-### `random`
-Displays a random task from your recent unfinished tasks.
-Example:
-```bash
-./doingcli random
-```
-
-## Contributing
-
-Contributions are welcome!
-
-## Planned Features
-
-The following features are planned for future development:
-
--   `edit <task-id> <new-description>`: Modify an existing task.
--   `archive`: Move completed tasks to an archive.
--   `undo`: Revert the last action.
--   `help`: Display help information for commands.
--   Improved handling of "later" tasks, possibly separating them into a dedicated view.
--   Performance metrics and tracking for tasks.
+**Path to completion:**
+- Copying all the base functionalities from the original doing that I do use
+- ...
+- ...
+- ...
+- ...
 
 ---
 
 #### What makes it finished?
 
-The project will be considered feature-complete when it offers robust task management, including the ability to annotate tasks (now/later), mark as done, view recent/last activities, and manage distractions. Key aspects include being super fast, showing task duration, and providing a seamless cycle for completing tasks.
+You use doing now or doing later, to anotate stuff todo, then once you are done, you use doing done, with or without keywords for the task you want to complete, and then you can visualize with doing recent all that is pending
 
-#### Notes:
+---
 
-> This project is driven by the need for a highly performant and user-friendly CLI task tracker. It aims to address the shortcomings of existing tools, such as slow performance, unreliable commands, and difficulties in managing and completing old tasks efficiently. This is an exciting opportunity to learn and implement new concepts in Go.
+#### Plan:
+
+- Day 1: I need all The basics functionalities: now, done, recent
+- Day 2: Be able to save a file on the specified directory
+- Day 3: Be able to add configurations like the directory one or format through the config file
+- Day 4: Special functionalities like: check, undo, begin, resume, restart, last
+- Day 5: Finish special functionalities like: check, undo, begin, resume, restart, last
 
 ---
 
 #### Deadline:
 
-Will be finished in five days by Tue 25 Nov 20:23:12 CET 2025, else it won't be finished.
-*(Note: This deadline is a personal goal for initial feature set completion.)*
+Will be finished in five days by Fri 28 Nov 18:10:36 CET 2025, else it won't be finished
+
+---
+
+#### Notes:
+
+> Should be aquick solution.
+> This will help me achieve many of my goals.
+
