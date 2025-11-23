@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"regexp"
 	"strings"
 	"time"
@@ -26,6 +27,14 @@ const (
 	CYAN    = "36"
 	WHITE   = "37"
 )
+
+func filepath() string {
+	parent := os.Getenv("DOINGO_PATH")
+	if parent == "" {
+		parent = "."
+	}
+	return strings.TrimRight(parent, "/") + "/what_was_I_doing.txt"
+}
 
 func cit(text string, color string) string {
 	return "\033[" + color + "m" + text + "\033[0m"
@@ -91,8 +100,21 @@ func printTask(line string) {
 	rest = strings.Repeat(" ", len("03:04pm")-len(rest)) + rest
 	cuteDate = strings.Repeat(" ", LONGEST-len(first)) + "  " + first + " " + rest
 
-	end := min(PADDING, textLength)
-	line = text[0:end]
+	getEnd := func(t string) int {
+		length := utf8.RuneCountInString(t)
+		if length > PADDING {
+			for i := PADDING - 1; i >= 0; i-- {
+				if t[i] != ' ' {
+					return i + 1
+				}
+			}
+			return PADDING
+		}
+		return length
+	}
+
+	end := getEnd(text)
+	line = text[:end]
 	fmt.Println(
 		cit(cuteDate, CYAN), DELIMITER, "> "+line,
 		padding(textLength), cit("[", MAGENTA)+"Currently"+cit("]", MAGENTA),
@@ -101,17 +123,17 @@ func printTask(line string) {
 
 	for end < textLength {
 		start := end
-		end = min(end+PADDING, textLength)
+		end = getEnd(text[start:]) + PADDING
 
 		line = text[start:end]
 		padding := strings.Repeat(" ", utf8.RuneCountInString(cuteDate))
 
-		fmt.Println(padding, DELIMITER, ">", line)
+		fmt.Println(padding, DELIMITER, " ", line)
 	}
 }
 
 func recent() {
-	file, err := os.Open(FILENAME)
+	file, err := os.Open(filepath())
 	if err != nil {
 		if os.IsNotExist(err) {
 			return
@@ -130,7 +152,7 @@ func recent() {
 func done(pattern string) {
 	var lines []string
 
-	file, err := os.OpenFile(FILENAME, os.O_RDWR, 0644)
+	file, err := os.OpenFile(filepath(), os.O_RDWR, 0644)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return
@@ -151,9 +173,10 @@ func done(pattern string) {
 	}
 
 	// Reverse search for @done
+	pattern = strings.ToLower(pattern)
 	for i := len(lines) - 1; i >= 0; i-- {
 		line := lines[i]
-		if !strings.Contains(line, "@done") && strings.Contains(line, pattern) {
+		if !strings.Contains(line, "@done") && strings.Contains(strings.ToLower(line), pattern) {
 			lines[i] = fmt.Sprintf("%s @done(%s)", line, time.Now().Format(DATE_FORMAT))
 			text := strings.ReplaceAll(strings.Split(lines[i], DELIMITER)[1], "@done", cit("@done", RED))
 
@@ -170,7 +193,7 @@ func done(pattern string) {
 func last() {
 	var line string
 
-	file, err := os.Open(FILENAME)
+	file, err := os.Open(filepath())
 	if err != nil {
 		if os.IsNotExist(err) {
 			return
@@ -208,7 +231,7 @@ func last() {
 }
 
 func show(day string) bool {
-	file, err := os.OpenFile(FILENAME, os.O_RDWR, 0644)
+	file, err := os.OpenFile(filepath(), os.O_RDWR, 0644)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return false
@@ -264,11 +287,10 @@ func show(day string) bool {
 	return true
 }
 
-// FIX: Urgent archive destroys old ones
 func archive() {
 	var lines []string
 
-	file, err := os.OpenFile(FILENAME, os.O_RDWR, 0644)
+	file, err := os.OpenFile(filepath(), os.O_RDWR, 0644)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return
@@ -278,9 +300,9 @@ func archive() {
 	defer file.Close()
 
 	date := time.Now().Format("20060102")
-	fileName := fmt.Sprintf("%s_%s.txt", FILENAME, date)
+	fileName := fmt.Sprintf("%s_%s.txt", filepath(), date)
 
-	outFile, err := os.Create(fileName)
+	outFile, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -323,7 +345,7 @@ func main() {
 			text := strings.Join(os.Args[2:], " ")
 			fmt.Println("\t", cit("New entry:", CYAN), "added", formatDate(date)+": \"", text, "\" to Currently")
 
-			file, err := os.OpenFile(FILENAME, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+			file, err := os.OpenFile(filepath(), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -336,7 +358,19 @@ func main() {
 		case "done", "did":
 			done(strings.Join(os.Args[2:], " "))
 		case "edit":
-			panic("TODO: Implement edit")
+			if editor := os.Getenv("EDITOR"); editor != "" {
+				cmd := exec.Command(editor, filepath())
+				cmd.Stdin = os.Stdin
+				cmd.Stdout = os.Stdout
+				cmd.Stderr = os.Stderr
+
+				err := cmd.Run()
+				if err != nil {
+					fmt.Println(err)
+				}
+			} else {
+				fmt.Println("Variable $EDITOR not set")
+			}
 		case "recent":
 			recent()
 		case "today", "yesterday":

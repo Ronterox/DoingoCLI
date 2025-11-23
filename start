@@ -6,7 +6,7 @@ set -e
 # @arg args*  Arguments to pass to the binary
 # @meta default-subcommand
 run() {
-    go run . "${argc_args[@]}"
+	DOINGO_PATH=$(pwd) go run . "${argc_args[@]}"
 }
 
 # @cmd Prepares a development environment
