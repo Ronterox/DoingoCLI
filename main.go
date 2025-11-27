@@ -125,7 +125,7 @@ func printTask(line string) {
 		start := end
 		end = getEnd(text[start:]) + PADDING
 
-		line = text[start:end]
+		line = text[start : end-1]
 		padding := strings.Repeat(" ", utf8.RuneCountInString(cuteDate))
 
 		fmt.Println(padding, DELIMITER, " ", line)
