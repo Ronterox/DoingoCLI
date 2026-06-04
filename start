@@ -12,7 +12,7 @@ run() {
 # @cmd Prepares a development environment
 dev() {
     go mod tidy
-    ls *.go | entr -c -r go run .
+    ls *.go | DOINGO_PATH=$(pwd) entr -c -r go run .
 }
 
 # @cmd Buils the binary

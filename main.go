@@ -115,9 +115,13 @@ func printTask(line string) {
 
 	end := getEnd(text)
 	line = text[:end]
+	tag := "Currently"
+	if tagged := strings.Split(line, ":"); len(tagged) > 1 {
+		tag = strings.Title(strings.TrimLeft(tagged[0], " "))
+	}
 	fmt.Println(
 		cit(cuteDate, CYAN), DELIMITER, "> "+line,
-		padding(textLength), cit("[", MAGENTA)+"Currently"+cit("]", MAGENTA),
+		padding(textLength), cit("[", MAGENTA)+tag+cit("]", MAGENTA),
 		cit(doneTime, YELLOW),
 	)
 
@@ -343,7 +347,11 @@ func main() {
 		case "now", "later":
 			date := time.Now()
 			text := strings.Join(os.Args[2:], " ")
-			fmt.Println("\t", cit("New entry:", CYAN), "added", formatDate(date)+": \"", text, "\" to Currently")
+			tag := "Currently"
+			if tagged := strings.Split(text, ":"); len(tagged) > 1 {
+				tag = tagged[0]
+			}
+			fmt.Printf("\t%s added %s: \"%s\" to %s\n", cit("New entry:", CYAN), formatDate(date), text, cit(tag, MAGENTA))
 
 			file, err := os.OpenFile(filepath(), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 			if err != nil {
