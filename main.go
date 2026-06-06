@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -16,6 +17,9 @@ const DELIMITER = "║"
 const DATE_FORMAT = "02/01/06 15:04:05"
 const LONGEST = len("Yesterday")
 const PADDING = 88
+
+const DEFAULT_TAG = "Currently"
+const TAG_DELIMITER = ":"
 
 const (
 	BLACK   = "30"
@@ -115,10 +119,9 @@ func printTask(line string) {
 
 	end := getEnd(text)
 	line = text[:end]
-	tag := "Currently"
-	if tagged := strings.Split(line, ":"); len(tagged) > 1 {
-		tag = strings.Title(strings.TrimLeft(tagged[0], " "))
-	}
+	tag := getTag(line)
+
+	// TODO: Printf
 	fmt.Println(
 		cit(cuteDate, CYAN), DELIMITER, "> "+line,
 		padding(textLength), cit("[", MAGENTA)+tag+cit("]", MAGENTA),
@@ -150,6 +153,40 @@ func recent() {
 	for scanner.Scan() {
 		line := scanner.Text()
 		printTask(line)
+	}
+}
+
+func sorted() {
+	file, err := os.Open(filepath())
+	if err != nil {
+		if os.IsNotExist(err) {
+			return
+		}
+		fmt.Println(err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	lines := make([]struct {
+		tag  string
+		line string
+	}, 0)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		tag := getTag(line)
+		lines = append(lines, struct {
+			tag  string
+			line string
+		}{tag, line})
+	}
+
+	sort.Slice(lines, func(i, j int) bool {
+		return lines[i].tag < lines[j].tag
+	})
+
+	for _, line := range lines {
+		printTask(line.line)
 	}
 }
 
@@ -340,6 +377,18 @@ func archive() {
 	fmt.Println("Archived", amount, "tasks to", fileName)
 }
 
+func getTag(line string) string {
+	if timed := strings.Split(line, DELIMITER); len(timed) > 1 {
+		line = timed[1]
+	}
+
+	if tagged := strings.Split(line, TAG_DELIMITER); len(tagged) > 1 {
+		return strings.Title(strings.TrimLeft(tagged[0], " "))
+	}
+
+	return DEFAULT_TAG
+}
+
 func main() {
 	if len(os.Args) > 1 {
 		command := strings.ToLower(os.Args[1])
@@ -347,10 +396,7 @@ func main() {
 		case "now", "later":
 			date := time.Now()
 			text := strings.Join(os.Args[2:], " ")
-			tag := "Currently"
-			if tagged := strings.Split(text, ":"); len(tagged) > 1 {
-				tag = tagged[0]
-			}
+			tag := getTag(text)
 			fmt.Printf("\t%s added %s: \"%s\" to %s\n", cit("New entry:", CYAN), formatDate(date), text, cit(tag, MAGENTA))
 
 			file, err := os.OpenFile(filepath(), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
@@ -381,6 +427,8 @@ func main() {
 			}
 		case "recent":
 			recent()
+		case "sort":
+			sorted()
 		case "today", "yesterday":
 			show(command)
 		case "archive", "move":
